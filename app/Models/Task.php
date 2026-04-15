@@ -17,6 +17,15 @@ class Task extends Model
         'status',
         'difficulty',
         'assigned_to',
+        'project_id',
+        'start_date',
+        'end_date',
+        'completion_percentage',
+    ];
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     public function user(): BelongsTo
@@ -27,5 +36,10 @@ class Task extends Model
     public function assignedTo(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 }

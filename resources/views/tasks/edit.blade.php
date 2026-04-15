@@ -88,6 +88,12 @@
             box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
         }
 
+        input[readonly] {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+            color: #999;
+        }
+
         textarea {
             resize: vertical;
             min-height: 120px;
@@ -137,11 +143,34 @@
 
                 <div class="form-group">
                     <label for="title">Tiêu Đề *</label>
-                    <input type="text" id="title" name="title" value="{{ old('title', $task->title) }}" required>
+                    <input type="text" id="title" name="title" value="{{ old('title', $task->title) }}" {{ Auth::user()->role !== 'admin' ? 'readonly' : '' }} required>
                     @error('title')
                     <span style="color: #d32f2f; font-size: 12px;">{{ $message }}</span>
                     @enderror
                 </div>
+
+                @if(Auth::user()->role !== 'admin')
+                <input type="hidden" name="title" value="{{ $task->title }}">
+                @endif
+
+                @if(Auth::user()->role === 'admin')
+                <div class="form-group">
+                    <label for="project_id">Dự Án</label>
+                    <select id="project_id" name="project_id">
+                        <option value="">-- Chọn Dự Án (Tuỳ Chọn) --</option>
+                        @foreach ($projects as $project)
+                        <option value="{{ $project->id }}" {{ old('project_id', $task->project_id) == $project->id ? 'selected' : '' }}>
+                            {{ $project->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                    @error('project_id')
+                    <span style="color: #d32f2f; font-size: 12px;">{{ $message }}</span>
+                    @enderror
+                </div>
+                @else
+                <input type="hidden" name="project_id" value="{{ $task->project_id }}">
+                @endif
 
                 <div class="form-group">
                     <label for="description">Mô Tả</label>
@@ -151,6 +180,7 @@
                     @enderror
                 </div>
 
+                @if(Auth::user()->role === 'admin')
                 <div class="form-group">
                     <label for="assigned_to">Giao Cho Nhân Viên *</label>
                     <select id="assigned_to" name="assigned_to" required>
@@ -165,6 +195,9 @@
                     <span style="color: #d32f2f; font-size: 12px;">{{ $message }}</span>
                     @enderror
                 </div>
+                @else
+                <input type="hidden" name="assigned_to" value="{{ $task->assigned_to }}">
+                @endif
 
                 <div class="form-group">
                     <label for="status">Trạng Thái *</label>
@@ -190,11 +223,54 @@
                     @enderror
                 </div>
 
+                <div class="form-group">
+                    <label for="completion_percentage">Phần Trăm Hoàn Thành (%)</label>
+                    <input type="range" id="completion_percentage" name="completion_percentage" min="0" max="100" value="{{ old('completion_percentage', $task->completion_percentage) }}" style="padding: 0;">
+                    <div style="text-align: center; margin-top: 10px; font-weight: bold;">
+                        <span id="percentageDisplay">{{ old('completion_percentage', $task->completion_percentage) }}</span>%
+                        <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 10px;">
+                            <div id="progressBar" style="background: #4caf50; height: 100%; width: {{ old('completion_percentage', $task->completion_percentage) }}%; border-radius: 5px; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                    @error('completion_percentage')
+                    <span style="color: #d32f2f; font-size: 12px;">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="start_date">Ngày Bắt Đầu</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ old('start_date', $task->start_date?->format('Y-m-d')) }}">
+                    @error('start_date')
+                    <span style="color: #d32f2f; font-size: 12px;">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">Ngày Kết Thúc</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ old('end_date', $task->end_date?->format('Y-m-d')) }}">
+                    @error('end_date')
+                    <span style="color: #d32f2f; font-size: 12px;">{{ $message }}</span>
+                    @enderror
+                </div>
+
                 <button type="submit">Cập Nhật Task</button>
                 <a href="{{ route('tasks.index') }}" style="display: inline-block; padding: 10px 30px; background: #757575; color: white; text-decoration: none; border-radius: 5px;">Hủy</a>
             </form>
         </div>
     </div>
+
+    <script>
+        const slider = document.getElementById('completion_percentage');
+        const percentageDisplay = document.getElementById('percentageDisplay');
+        const progressBar = document.getElementById('progressBar');
+
+        if (slider) {
+            slider.addEventListener('input', function() {
+                percentageDisplay.textContent = this.value;
+                progressBar.style.width = this.value + '%';
+            });
+        }
+    </script>
 </body>
 
 </html>

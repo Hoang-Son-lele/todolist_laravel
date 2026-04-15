@@ -262,12 +262,16 @@
                     <th>ID</th>
                     <th>Tiêu Đề</th>
                     <th>Mô Tả</th>
+                    <th>Dự Án</th>
                     @if(Auth::user()->role === 'admin')
                     <th>Người Tạo</th>
                     @endif
                     <th>Giao Cho</th>
                     <th>Trạng Thái</th>
                     <th>Độ Khó</th>
+                    <th>Phần Trăm Hoàn Thành</th>
+                    <th>Ngày Bắt Đầu</th>
+                    <th>Ngày Kết Thúc</th>
                     <th>Thao Tác</th>
                 </tr>
             </thead>
@@ -277,6 +281,13 @@
                     <td>#{{ $task->id }}</td>
                     <td><strong>{{ $task->title }}</strong></td>
                     <td>{{ Str::limit($task->description, 50) }}</td>
+                    <td>
+                        @if($task->project)
+                        <a href="{{ route('projects.show', $task->project) }}" style="color: #667eea; text-decoration: none;">{{ $task->project->name }}</a>
+                        @else
+                        <span style="color: #999;">Không có</span>
+                        @endif
+                    </td>
                     @if(Auth::user()->role === 'admin')
                     <td>{{ $task->user->name }}</td>
                     @endif
@@ -318,9 +329,33 @@
                         </span>
                     </td>
                     <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="flex: 1; background: #e0e0e0; height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div style="background: #4caf50; height: 100%; width: {{ $task->completion_percentage }}%; border-radius: 3px; transition: width 0.3s;"></div>
+                            </div>
+                            <span style="font-weight: bold; min-width: 40px;">{{ $task->completion_percentage }}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        @if($task->start_date)
+                        {{ $task->start_date->format('d/m/Y') }}
+                        @else
+                        <span style="color: #999;">-</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($task->end_date)
+                        {{ $task->end_date->format('d/m/Y') }}
+                        @else
+                        <span style="color: #999;">-</span>
+                        @endif
+                    </td>
+                    <td>
                         <div class="actions">
-                            @if(Auth::user()->role === 'admin')
+                            @if(Auth::user()->role === 'admin' || Auth::user()->id === $task->assigned_to)
                             <a href="{{ route('tasks.edit', $task->id) }}" class="btn btn-edit btn-sm">Sửa</a>
+                            @endif
+                            @if(Auth::user()->role === 'admin')
                             <form method="POST" action="{{ route('tasks.destroy', $task->id) }}" style="display: inline;" onsubmit="return confirm('Bạn chắc chắn muốn xóa task này?');">
                                 @csrf
                                 @method('DELETE')
@@ -342,6 +377,10 @@
             <p style="color: #999; font-size: 18px;">Không có task nào. <a href="{{ route('tasks.create') }}">Tạo task mới</a></p>
         </div>
         @endif
+
+        <a href="{{route('projects.index')}}">
+            <button class="btn btn-secondary mt-6">← Quay Lại Dự Án</button>
+        </a>
     </div>
 </body>
 

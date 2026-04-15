@@ -143,6 +143,21 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="project_id">Dự Án</label>
+                    <select id="project_id" name="project_id">
+                        <option value="">-- Chọn Dự Án (Tuỳ Chọn) --</option>
+                        @foreach ($projects as $project)
+                        <option value="{{ $project->id }}" {{ old('project_id', $projectId) == $project->id ? 'selected' : '' }}>
+                            {{ $project->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                    @error('project_id')
+                    <span style="color: #d32f2f; font-size: 12px;">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
                     <label for="description">Mô Tả</label>
                     <textarea id="description" name="description">{{ old('description') }}</textarea>
                     @error('description')
@@ -185,6 +200,22 @@
                         <option value="hard" {{ old('difficulty') == 'hard' ? 'selected' : '' }}>Khó</option>
                     </select>
                     @error('difficulty')
+                    <span style="color: #d32f2f; font-size: 12px;">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="start_date">Ngày Bắt Đầu</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ old('start_date') }}">
+                    @error('start_date')
+                    <span style="color: #d32f2f; font-size: 12px;">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">Ngày Kết Thúc</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ old('end_date') }}">
+                    @error('end_date')
                     <span style="color: #d32f2f; font-size: 12px;">{{ $message }}</span>
                     @enderror
                 </div>
