@@ -21,11 +21,17 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
 Route::middleware('auth')->group(function () {
     // User dashboard routes
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
+    Route::get('/overdue-deadlines', [UserController::class, 'overdueDeadlines'])->name('user.overdue-deadlines');
     Route::get('/my-tasks/{taskId}', [UserController::class, 'viewTask'])->name('user.task.view');
     Route::post('/my-tasks/{taskId}/status', [UserController::class, 'updateTaskStatus'])->name('user.task.update-status');
     Route::post('/my-tasks/{taskId}/completion', [UserController::class, 'updateTaskCompletion'])->name('user.task.update-completion');
     Route::post('/my-tasks/{taskId}', [UserController::class, 'updateTask'])->name('user.task.update');
     Route::post('/api/tasks/{task}/status', [UserController::class, 'updateTaskStatusAjax'])->name('api.task.update-status');
+
+    // Notification routes
+    Route::get('/api/notifications', [UserController::class, 'getNotifications'])->name('api.notifications');
+    Route::post('/api/notifications/{notificationId}/read', [UserController::class, 'markNotificationAsRead'])->name('api.notification.read');
+    Route::post('/api/tasks/{taskId}/send-deadline-email', [UserController::class, 'sendDeadlineEmailToManager'])->name('api.task.send-deadline-email');
 
     // Project routes
     Route::resource('projects', ProjectController::class);
@@ -41,4 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/projects/{project}/report', [ProjectController::class, 'report'])
         ->name('projects.report')
         ->middleware(['auth']);
+
+    // Admin routes
+    Route::get('/admin/deadline-notifications', [UserController::class, 'adminDeadlineNotifications'])->name('admin.deadline-notifications');
 });

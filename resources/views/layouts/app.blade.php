@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'BigBang - Quản Lý Dự Án')</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -106,6 +107,9 @@
                 <div class="flex items-center gap-6">
                     @auth
                     <div class="flex items-center gap-3">
+                        <!-- Notification Bell -->
+                        @include('components.notification-bell')
+
                         <div class="text-right">
                             <p class="text-white font-semibold text-sm">{{ Auth::user()->name }}</p>
                             @if(Auth::user()->role === 'admin')
@@ -146,6 +150,10 @@
                 <i class="fas fa-folder"></i>
                 <span>Danh Sách Dự Án</span>
             </a>
+            <a href="{{ route('user.overdue-deadlines') }}" class="menu-item {{ request()->routeIs('user.overdue-deadlines') ? 'active' : '' }}">
+                <i class="fas fa-exclamation-circle text-red-500"></i>
+                <span>Cảnh Báo Deadline</span>
+            </a>
             @if(Auth::user()->role === 'admin')
             <a href="{{ route('projects.create') }}" class="menu-item {{ request()->routeIs('projects.create') ? 'active' : '' }}">
                 <i class="fas fa-plus-circle"></i>
@@ -162,6 +170,10 @@
                 <a href="{{ route('tasks.create') }}" class="menu-item {{ request()->routeIs('tasks.create') ? 'active' : '' }}">
                     <i class="fas fa-plus-circle"></i>
                     <span>Tạo Task Mới</span>
+                </a>
+                <a href="{{ route('admin.deadline-notifications') }}" class="menu-item {{ request()->routeIs('admin.deadline-notifications') ? 'active' : '' }}">
+                    <i class="fas fa-bell text-red-500"></i>
+                    <span>Thông Báo Deadline</span>
                 </a>
 
                 <div class="menu-label text-gray-400 text-xs uppercase font-semibold mb-2 px-4 mt-4">

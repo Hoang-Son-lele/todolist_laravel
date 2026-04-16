@@ -137,15 +137,33 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">
                             @if($task->end_date)
-                            {{ $task->end_date->format('d/m/Y') }}
+                            <div class="flex items-center gap-2">
+                                <span>{{ $task->end_date->format('d/m/Y') }}</span>
+                                @if($task->end_date <= now()->toDateString() && $task->status !== 'completed')
+                                    <span class="inline-block px-2 py-1 bg-red-500 text-white rounded text-xs font-semibold" title="Đã hết hạn">
+                                        <i class="fas fa-exclamation-circle"></i> Hết hạn
+                                    </span>
+                                    @elseif($task->end_date <= now()->addDays(3)->toDateString() && $task->status !== 'completed')
+                                        <span class="inline-block px-2 py-1 bg-yellow-500 text-white rounded text-xs font-semibold" title="Sắp hết hạn">
+                                            <i class="fas fa-clock"></i> Sắp hạn
+                                        </span>
+                                        @endif
+                            </div>
                             @else
                             <span class="text-gray-400">-</span>
                             @endif
                         </td>
                         <td class="px-6 py-4">
-                            <a href="{{ route('user.task.view', $task) }}" class="inline-block px-4 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-semibold">
-                                <i class="fas fa-eye"></i> Chi Tiết
-                            </a>
+                            <div class="flex gap-2">
+                                <a href="{{ route('user.task.view', $task) }}" class="inline-block px-4 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-semibold">
+                                    <i class="fas fa-eye"></i> Chi Tiết
+                                </a>
+                                @if($task->end_date && $task->end_date <= now()->toDateString() && $task->status !== 'completed')
+                                    <button onclick="sendEmailQuick(event, {{ $task->id }})" class="inline-block px-4 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-semibold" title="Gửi email cho quản lý">
+                                        <i class="fas fa-envelope"></i> Email
+                                    </button>
+                                    @endif
+                            </div>
                         </td>
                     </tr>
                     @endforeach
@@ -174,6 +192,47 @@
                 });
             });
         });
+
+        // Gửi email cho quản lý từ dashboard
+        function sendEmailQuick(event, taskId) {
+            event.preventDefault();
+
+            if (!confirm('Gửi email thông báo task hết hạn cho quản lý?')) {
+                return;
+            }
+
+            const button = event.target.closest('button');
+            button.disabled = true;
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang gửi...';
+
+            fetch(`/api/tasks/${taskId}/send-deadline-email`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        button.innerHTML = '<i class="fas fa-check"></i> Đã gửi';
+                        button.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        button.classList.add('bg-green-500', 'hover:bg-green-600');
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                        button.disabled = false;
+                        button.innerHTML = originalHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Lỗi khi gửi email');
+                    button.disabled = false;
+                    button.innerHTML = originalHTML;
+                });
+        }
     </script>
 </div>
 @endsection

@@ -10,14 +10,20 @@
             <button onclick="toggleEditForm()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
                 ✏️ Sửa
             </button>
-            @if($task->project)
-            <a href="{{ route('projects.show', $task->project) }}" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded">
-                📁 Dự Án
-            </a>
-            @endif
-            <a href="{{ route('user.dashboard') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded">
-                ← Quay Lại
-            </a>
+            <!-- Deadline Warning & Send Email Button -->
+            @if($task->end_date && $task->end_date <= now()->toDateString() && $task->status !== 'completed')
+                <button onclick="sendEmailToManager({{ $task->id }})" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i> Gửi Email Hết Hạn
+                </button>
+                @endif
+                @if($task->project)
+                <a href="{{ route('projects.show', $task->project) }}" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded">
+                    📁 Dự Án
+                </a>
+                @endif
+                <a href="{{ route('user.dashboard') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded">
+                    ← Quay Lại
+                </a>
         </div>
     </div>
 
@@ -231,6 +237,44 @@
     function toggleEditForm() {
         const editForm = document.getElementById('editForm');
         editForm.classList.toggle('hidden');
+    }
+
+    // Gửi email cho quản lý
+    function sendEmailToManager(taskId) {
+        if (!confirm('Gửi email thông báo task hết hạn cho quản lý?')) {
+            return;
+        }
+
+        const button = event.target.closest('button');
+        button.disabled = true;
+        button.textContent = '⏳ Đang gửi...';
+
+        fetch(`/api/tasks/${taskId}/send-deadline-email`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    button.textContent = '✅ Đã Gửi';
+                    button.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    button.classList.add('bg-green-500', 'hover:bg-green-600');
+                } else {
+                    alert('Lỗi: ' + data.message);
+                    button.disabled = false;
+                    button.textContent = '<i class="fas fa-exclamation-circle"></i> Gửi Email Hết Hạn';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Lỗi khi gửi email');
+                button.disabled = false;
+                button.textContent = '✏️ Sửa';
+            });
     }
 </script>
 @endsection
