@@ -145,11 +145,8 @@
                     ${!notif.read_at ? '<span class="inline-block w-2 h-2 bg-blue-600 rounded-full mt-1"></span>' : ''}
                 </div>
                 <div class="notification-action">
-                    <button class="send-email-btn" onclick="sendDeadlineEmail(${notif.data.task_id})">
-                        <i class="fas fa-envelope mr-1"></i> Gửi email
-                    </button>
                     <button class="mark-read-btn" onclick="markNotificationAsRead('${notif.id}')">
-                        <i class="fas fa-check mr-1"></i> Đánh dấu
+                        <i class="fas fa-check mr-1"></i> Đánh dấu đã đọc
                     </button>
                 </div>
             </div>

@@ -32,8 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/notifications', [UserController::class, 'getNotifications'])->name('api.notifications');
     Route::post('/api/notifications/{notificationId}/read', [UserController::class, 'markNotificationAsRead'])->name('api.notification.read');
     Route::post('/api/tasks/{taskId}/send-deadline-email', [UserController::class, 'sendDeadlineEmailToManager'])->name('api.task.send-deadline-email');
-
-    // Project routes
+    Route::post('/api/notifications/send-quick', [UserController::class, 'sendQuickNotification'])->name('api.notifications.send-quick');
     Route::resource('projects', ProjectController::class);
 
     // Task routes (Admin only)

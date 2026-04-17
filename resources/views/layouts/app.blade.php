@@ -154,6 +154,10 @@
                 <i class="fas fa-exclamation-circle text-red-500"></i>
                 <span>Cảnh Báo Deadline</span>
             </a>
+            <a href="{{ route('user.dashboard') }}#quickNotificationForm" class="menu-item">
+                <i class="fas fa-paper-plane text-green-500"></i>
+                <span>Gửi Thông Báo</span>
+            </a>
             @if(Auth::user()->role === 'admin')
             <a href="{{ route('projects.create') }}" class="menu-item {{ request()->routeIs('projects.create') ? 'active' : '' }}">
                 <i class="fas fa-plus-circle"></i>

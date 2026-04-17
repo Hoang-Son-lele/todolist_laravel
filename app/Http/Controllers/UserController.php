@@ -269,7 +269,7 @@ class UserController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        // Decode data để lấy thông tin chi tiết
+
         $processedItems = $notifications->map(function ($notif) {
             $data = json_decode($notif->data);
             return (object)[
@@ -300,5 +300,45 @@ class UserController extends Controller
         $users = User::whereIn('id', $userIds)->get()->keyBy('id');
 
         return view('admin.deadline-notifications', compact('processedNotifications', 'users'));
+    }
+
+    /**
+     * Gửi thông báo nhanh cho user (email hoặc telegram)
+     */
+    public function sendQuickNotification(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|min:5|max:200',
+                'content' => 'required|string|min:10|max:5000',
+                'channel' => 'required|in:email,telegram',
+            ]);
+
+            $user = Auth::user();
+
+            // Gửi notification
+            $user->notify(new \App\Notifications\CustomNotification(
+                $validated['title'],
+                $validated['content'],
+                $validated['channel']
+            ));
+
+            $channelName = $validated['channel'] === 'email' ? 'Email' : 'Telegram';
+
+            return response()->json([
+                'success' => true,
+                'message' => "✅ Thông báo đã được gửi thành công tới {$channelName}!"
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error sending quick notification', [
+                'message' => $e->getMessage(),
+                'user_id' => Auth::id(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

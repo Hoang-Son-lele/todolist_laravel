@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Task;
+use App\Mail\TaskDeadlineWarningMail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
@@ -28,7 +29,15 @@ class TaskDeadlineWarning extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail', 'telegram'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable)
+    {
+        return new TaskDeadlineWarningMail($this->task, $this->customMessage);
     }
 
     /**
@@ -46,5 +55,14 @@ class TaskDeadlineWarning extends Notification
             'message' => $this->customMessage ?? 'Task "' . $this->task->title . '" sắp đến hạn (Hạn: ' . $this->task->end_date->format('d/m/Y') . ')',
             'url' => '/my-tasks/' . $this->task->id,
         ];
+    }
+
+    /**
+     * Send Telegram notification
+     */
+    public function toTelegram(object $notifiable): void
+    {
+        $notif = new TaskDeadlineWarningTelegram($this->task, $this->customMessage);
+        $notif->toTelegram($notifiable);
     }
 }

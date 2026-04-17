@@ -9,6 +9,73 @@
         <p class="text-gray-600">Quản lý và cập nhật trạng thái tasks được giao</p>
     </div>
 
+    <!-- Quick Send Notification Form -->
+    <div class="mb-8 bg-white rounded-lg shadow-md p-6">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">📢 Gửi Thông Báo Nhanh</h2>
+            <p class="text-gray-600 text-sm">Gửi thông báo tới email hoặc Telegram của bạn</p>
+        </div>
+
+        <form id="quickNotificationForm" class="space-y-4">
+            @csrf
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="notification_title" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Tiêu Đề
+                    </label>
+                    <input
+                        type="text"
+                        id="notification_title"
+                        name="title"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Ví dụ: Nhắc nhở project"
+                        required
+                        minlength="5"
+                        maxlength="200">
+                </div>
+
+                <div>
+                    <label for="notification_channel" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Gửi Tới
+                    </label>
+                    <select id="notification_channel" name="channel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <option value="email">📧 Email</option>
+                        <option value="telegram">💬 Telegram</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="notification_content" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Nội Dung
+                </label>
+                <textarea
+                    id="notification_content"
+                    name="content"
+                    rows="3"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    placeholder="Nhập nội dung thông báo..."
+                    required
+                    minlength="10"
+                    maxlength="5000"></textarea>
+            </div>
+
+            <div class="flex gap-3">
+                <button
+                    type="submit"
+                    class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition"
+                    id="sendNotificationBtn">
+                    <i class="fas fa-paper-plane"></i> Gửi Ngay
+                </button>
+                <button
+                    type="reset"
+                    class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-semibold transition">
+                    <i class="fas fa-times"></i> Xóa
+                </button>
+            </div>
+        </form>
+    </div>
+
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
@@ -191,7 +258,65 @@
                     this.form.submit();
                 });
             });
+
+            // Handle quick notification form
+            const notificationForm = document.getElementById('quickNotificationForm');
+            if (notificationForm) {
+                notificationForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    sendQuickNotification();
+                });
+            }
         });
+
+        // Gửi thông báo nhanh
+        function sendQuickNotification() {
+            const title = document.getElementById('notification_title').value;
+            const content = document.getElementById('notification_content').value;
+            const channel = document.getElementById('notification_channel').value;
+            const btn = document.getElementById('sendNotificationBtn');
+
+            if (!title || !content || !channel) {
+                alert('Vui lòng điền đầy đủ thông tin!');
+                return;
+            }
+
+            btn.disabled = true;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang gửi...';
+
+            fetch('/api/notifications/send-quick', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        content: content,
+                        channel: channel
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        document.getElementById('quickNotificationForm').reset();
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Lỗi khi gửi thông báo: ' + error.message);
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                });
+        }
 
         // Gửi email cho quản lý từ dashboard
         function sendEmailQuick(event, taskId) {
